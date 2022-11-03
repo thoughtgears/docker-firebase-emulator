@@ -1,0 +1,7 @@
+emulator-data/
+.gitignore
+.github
+Makefile
+cloudbuild.yaml
+LICENSE
+README.md
