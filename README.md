@@ -10,6 +10,48 @@ This will be linked to your container and will be installed and tested. You will
 environment variables in the compose file. 
 Emulators used is a csv list of emulators to start up during the initial phase.
 
+#### Firebase
+
+Short example of a `firebase/firebase.json` file to use with your project
+
+```json
+{
+  "emulators": {
+    "ui": {
+      "enabled": true,
+      "port": "4000"
+    },
+    "hub": {
+      "port": "4400"
+    },
+    "logging": {
+      "port": "4600"
+    },
+    "functions": {
+      "port": "5001"
+    },
+    "firestore": {
+      "port": "8080"
+    },
+    "pubsub": {
+      "port": "8085"
+    },
+    "database": {
+      "port": "9000"
+    },
+    "auth": {
+      "port": "9099"
+    },
+    "storage": {
+      "port": "9199"
+    },
+    "hosting": {
+      "port": "6000"
+    }
+  }
+}
+```
+
 #### Env sample
 
 ```dotenv
@@ -54,7 +96,6 @@ EMULATORS_USED="auth,functions,firestore,pubsub,storage"
       - '6000:6001' # Hosting
     volumes:
       - ./firebase:/usr/src/firebase:rw
-      - ./emulator:/usr/src/emulator:rw
-      - ./emulator/cache:/root/.cache/:rw
+      - ./cache:/root/.cache/:rw
       - ~/.config/:/root/.config
 ```
