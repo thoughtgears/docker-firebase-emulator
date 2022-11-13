@@ -6,8 +6,9 @@ and other small tips and tricks.
 
 ## Initial setup
 In your repository you should have a firebase directory at the root of the docker-compose.yaml, it should contain all your different emulator folders and tests.  
-This will be linked to your container and will be installed and tested. You will also need a .env file or paste the values into the compose to substitute the default  
-environment variables in the compose file. 
+This will be linked to your container and will be installed and tested. You will also need a .env file or paste the values into the compose file to substitute the default  
+environment variables in the compose file. You also need a firebase/firebase.json file to configure firebase to enable UI and ensure they are started on the ports for the emulator.  
+
 Emulators used is a csv list of emulators to start up during the initial phase.
 
 #### Firebase
