@@ -20,7 +20,7 @@ dirs=("/usr/src/firebase/functions" "/usr/src/firebase/firestore" "/usr/src/fire
 
 for i in "${dirs[@]}"
 do
-  if [[ -d "/path/to/dir" ]]
+  if [[ -d "$i" ]]
   then
     cd "$i"
     ( npm i 2>&1 )
