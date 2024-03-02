@@ -1,14 +1,15 @@
-FROM node:17-alpine3.14
+FROM node:20-alpine
 
-ARG FIREBASE_VERSION
+ARG FIREBASE_VERSION=13.3.0
 
-RUN apk --no-cache add openjdk11-jre bash curl openssl gettext nano nginx sudo python3
-
-RUN mkdir -p /run/nginx
-RUN sudo npm cache clean --force
-RUN npm config set user root
-RUN npm i -g firebase-tools@$FIREBASE_VERSION && firebase -V
+RUN apk --no-cache add openjdk11-jre bash curl openssl gettext nano nginx sudo && \
+    npm cache clean --force && \
+    npm i -g firebase-tools@$FIREBASE_VERSION
 
 COPY nginx.conf /etc/nginx/
 COPY serve.sh /usr/bin/
 RUN chmod +x /usr/bin/serve.sh
+
+WORKDIR /srv/firebase
+
+ENTRYPOINT ["/usr/bin/serve.sh"]

@@ -1,64 +1,54 @@
 #!/bin/bash
 set -eo pipefail
 
-#Sanity checks
-if [[ -z "${DATA_DIRECTORY}" ]]; then
-  echo "DATA_DIRECTORY environment variable missing, will not export or import data to firebase"
-fi
+# Function to print error messages and exit
+error_exit() {
+    echo "$1" 1>&2
+    exit 1
+}
 
-if [[ -z "${FIREBASE_PROJECT}" ]]; then
-  echo "FIREBASE_PROJECT environment variable missing"
-  exit 1
-fi
+# Sanity checks
+[[ -z "${DATA_DIRECTORY}" ]] && echo "DATA_DIRECTORY environment variable missing, will not export or import data to firebase"
+[[ -z "${FIREBASE_PROJECT}" ]] && error_exit "FIREBASE_PROJECT environment variable missing"
 
-if [[ -z "${EMULATORS_USED}" ]]; then
-  echo "EMULATORS_USED environment variable missing"
-  exit 1
-fi
+dirs=("/srv/firebase/functions" "/srv/firebase/firestore" "/srv/firebase/storage")
 
-dirs=("/usr/src/firebase/functions" "/usr/src/firebase/firestore" "/usr/src/firebase/storage" "/usr/src/firebase")
-
-for i in "${dirs[@]}"
-do
-  if [[ -d "$i" ]]
-  then
-    cd "$i"
-    ( npm i 2>&1 )
+for dir in "${dirs[@]}"; do
+  if [[ -d "$dir" ]]; then
+    echo "Installing npm packages in $dir"
+    npm install --prefix "$dir" || error_exit "npm install failed in $dir"
   fi
 done
 
-if [[ -z "${DATA_DIRECTORY}" ]]; then
-    ( firebase emulators:start --project="$FIREBASE_PROJECT" --only="$EMULATORS_USED" ) &
-    firebase_pid=$!
-  else
-    ( firebase emulators:start --project="$FIREBASE_PROJECT" --import="$DATA_DIRECTORY" --export-on-exit="$DATA_DIRECTORY" --only="$EMULATORS_USED" ) &
-    firebase_pid=$!
-fi
+# Start Firebase emulators
+emulator_cmd="firebase emulators:start --project=${FIREBASE_PROJECT}"
+[[ -n "${DATA_DIRECTORY}" ]] && emulator_cmd+=" --import=./${DATA_DIRECTORY}/export --export-on-exit"
+$emulator_cmd &
+firebase_pid=$!
 
-
-# sleep as emulators need to start or the tests crash a bit
-sleep 20s
-
-( nginx ) &
+# Start nginx and npm
+echo "Starting nginx..."
+nginx &
 nginx_pid=$!
 
-( npm run start 2>&1 ) &
-npm_pid=$!
-
-:stop() {
-    if [[ "${DATA_DIRECTORY}" ]]; then
-      # remove old firestore data and recreate, export on exit was not working properly nor this without clearing folder first
-      ( rm -rf "$DATA_DIRECTORY" && firebase emulators:export "$DATA_DIRECTORY" )
+cleanup() {
+    echo "Stopping services..."
+    # Gracefully stop background processes
+    echo "Terminating background services..."
+    if [[ -n "$firebase_pid" ]]; then
+        kill -SIGTERM "$firebase_pid" || echo "Failed to terminate Firebase process"
+        wait "$firebase_pid" 2>/dev/null
+    fi
+    if [[ -n "$nginx_pid" ]]; then
+        kill -SIGTERM "$nginx_pid" || echo "Failed to terminate Nginx process"
+        wait "$nginx_pid" 2>/dev/null
+    fi
+    if [[ -n "$npm_pid" ]]; then
+        kill -SIGTERM "$npm_pid" || echo "Failed to terminate NPM process"
+        wait "$npm_pid" 2>/dev/null
     fi
 }
 
-#Execute command
-"${@}" &
+trap cleanup INT TERM SIGTERM SIGINT
 
-#Wait
-wait $!
-
-# fire stop on container exit
-trap :stop INT TERM SIGTERM
-
-wait $firebase_pid $nginx_pid $npm_pid
+wait

@@ -11,12 +11,12 @@ name: Create and publish a Docker image
 
 on:
   push:
-    branches: ['main']
+    branches: [ 'main' ]
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  FIREBASE_VERSION: "11.2.0"
+  FIREBASE_VERSION: "13.3.0"
 
 jobs:
   build-and-push-image:
