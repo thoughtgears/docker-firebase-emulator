@@ -1,0 +1,63 @@
+# Minimal working example for ghcr.io/thoughtgears/docker-firebase-emulator.
+#
+# Run it from the repo root:
+#   docker compose -f example/compose.yml up
+#
+# Then, once the logs show "All emulators ready!":
+#   open http://localhost:4000   # Emulator UI
+#   curl http://localhost:8080   # Firestore (REST)
+#
+# Stop and clean up with:
+#   docker compose -f example/compose.yml down
+#
+# This example's example/firebase/firebase.json only turns on the auth,
+# firestore, ui, hub and logging emulators, so that is all this file
+# exposes. If your own firebase.json also enables functions, storage,
+# database, hosting or pubsub, add their port pairs too — see the port
+# table and the nginx-offset explanation in the top-level README.md.
+services:
+  emulator:
+    # Pin to a specific published tag (see README.md "Supported versions")
+    # rather than `main`, so this example keeps working the same way even
+    # after new versions of the image are published.
+    image: ghcr.io/thoughtgears/docker-firebase-emulator:15.30.1
+    stop_grace_period: 1m
+    environment:
+      # Required by serve.sh. Doesn't need to be a real GCP project — the
+      # emulators never talk to real Google Cloud.
+      FIREBASE_PROJECT: "example-project"
+      GCLOUD_PROJECT: "example-project"
+      # Keeps `docker compose logs` output coloured/readable.
+      FORCE_COLOR: "true"
+      # Polling file watcher. Needed on some bind-mount setups (notably
+      # Docker Desktop on macOS/Windows) where native filesystem change
+      # events don't cross the VM boundary into the container.
+      CHOKIDAR_USEPOLLING: "true"
+      # DATA_DIRECTORY is intentionally left unset here, so serve.sh skips
+      # --import/--export and this example starts clean every run. Set it
+      # (and create firebase/data/export) to persist emulator state across
+      # restarts — see README.md.
+    healthcheck:
+      # The real emulator UI process (not the nginx proxy in front of it)
+      # listens on 4000 once startup finishes. netstat here is busybox's,
+      # which is why this doesn't use `-p`/`-l` flags a full net-tools has.
+      test: "netstat -an | grep -c 4000"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    ports:
+      # host:container. The container side is always the nginx port —
+      # serve.sh's real emulator port + 1 — because nginx.conf terminates
+      # there and proxies back down to the emulator itself. See
+      # nginx.conf / README.md for the full port table.
+      - "4000:4001" # Emulator UI
+      - "4400:4401" # Hub
+      - "4600:4601" # Logging
+      - "8080:8081" # Firestore (REST)
+      - "8082:9081" # Firestore (gRPC)
+      - "9099:9100" # Auth
+    volumes:
+      # This example's firebase.json, security rules and indexes.
+      - ./firebase:/srv/firebase:rw
+      # Caches firebase-tools' own downloads between runs.
+      - ./cache:/root/.cache/:rw

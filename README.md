@@ -24,13 +24,13 @@ against.
 
 ## Initial setup
 
-In your repository you should have a firebase directory at the root of the compose.yaml, it should contain all
+In your repository you should have a firebase directory at the root of the compose.yml, it should contain all
 your different emulator folders and tests. This will be linked to your container and will be installed and tested.
 Example of the directory structure and files can be found in the [example](./example) directory.
 
 - [firebase](./example/firebase) **(Required)**: The directory where you will store your firebase emulator configuration
   and data.
-- [compose.yaml](./example/compose.yml) **(Required)**: The docker-compose file that will start the emulator and your
+- [compose.yml](./example/compose.yml) **(Required)**: The docker-compose file that will start the emulator and your
   tests.
 
 **IMPORTANT**: In the `firebase` directory you must have a `data/export` directory if you opt in to store data, this is
@@ -81,6 +81,12 @@ Short example of a `firebase/firebase.json` file to use with your project
 ```
 
 #### Docker Compose
+
+[example/compose.yml](./example/compose.yml) is a runnable, tested copy of this pattern, pinned to the published
+`ghcr.io/thoughtgears/docker-firebase-emulator:15.30.1` image and scoped to the emulators
+[example/firebase/firebase.json](./example/firebase/firebase.json) actually enables (auth, firestore, ui, hub,
+logging). The template below shows the full port table for every emulator, for when your own `firebase.json` enables
+more than the example does.
 
 ```yaml
  services:
