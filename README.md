@@ -13,13 +13,14 @@ docker-compose), see [firebase-emulator-demo](https://github.com/thoughtgears/fi
 
 | Image tag | firebase-tools | Node base | Published |
 | --- | --- | --- | --- |
-| `15.30.1`, `latest` | 15.30.1 | `node:24-alpine` | 2026-09-15 |
+| `15.30.1`, `main` | 15.30.1 | `node:24-alpine` | 2026-09-15 |
 
 The `ARG FIREBASE_VERSION` default in the [Dockerfile](./Dockerfile) is the single source of truth for the
 firebase-tools version — the publish workflow reads it rather than declaring its own, so the image tagged on
 [GHCR](https://github.com/thoughtgears/docker-firebase-emulator/pkgs/container/docker-firebase-emulator) always
-matches what `docker build .` produces locally. Older tags stay published but are not maintained; pin the version you
-tested against, or track `latest`.
+matches what `docker build .` produces locally. Every push to `main` publishes both the version tag and `main`;
+there is no `latest` tag today. Older version tags stay published but are not maintained — pin the version you tested
+against.
 
 ## Initial setup
 
