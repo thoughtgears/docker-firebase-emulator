@@ -4,6 +4,23 @@ Docker version of the firebase emulator. Built to be used in docker-compose for 
 GRPC for firestore and pub/sub. Will require some specific config in to work properly and since it uses some features
 like data export, installation of NPM packages for the firebase emulator and other small tips and tricks.
 
+We use this every day building [Bobbin](https://getbobbin.dev).
+
+For a worked example of this image wired into a real multi-container app (frontend + API + emulator via
+docker-compose), see [firebase-emulator-demo](https://github.com/thoughtgears/firebase-emulator-demo).
+
+## Supported versions
+
+| Image tag | firebase-tools | Node base | Published |
+| --- | --- | --- | --- |
+| `15.30.1`, `latest` | 15.30.1 | `node:24-alpine` | 2026-09-15 |
+
+The `ARG FIREBASE_VERSION` default in the [Dockerfile](./Dockerfile) is the single source of truth for the
+firebase-tools version — the publish workflow reads it rather than declaring its own, so the image tagged on
+[GHCR](https://github.com/thoughtgears/docker-firebase-emulator/pkgs/container/docker-firebase-emulator) always
+matches what `docker build .` produces locally. Older tags stay published but are not maintained; pin the version you
+tested against, or track `latest`.
+
 ## Initial setup
 
 In your repository you should have a firebase directory at the root of the compose.yaml, it should contain all
@@ -71,7 +88,7 @@ Short example of a `firebase/firebase.json` file to use with your project
        context: ./emulator
        dockerfile: Dockerfile
        args:
-         - FIREBASE_VERSION=13.3.0 # Set to latest version
+         - FIREBASE_VERSION=15.30.1 # Set to latest version
      stop_grace_period: 1m
      environment:
        FIREBASE_AUTH_EMULATOR_HOST: "localhost:9099"
