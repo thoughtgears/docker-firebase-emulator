@@ -6,8 +6,14 @@ like data export, installation of NPM packages for the firebase emulator and oth
 
 We use this every day building [Bobbin](https://getbobbin.dev).
 
-For a worked example of this image wired into a real multi-container app (frontend + API + emulator via
-docker-compose), see [firebase-emulator-demo](https://github.com/thoughtgears/firebase-emulator-demo).
+[firebase-emulator-demo](https://github.com/thoughtgears/firebase-emulator-demo) is a worked example that
+**consumes this image**: its emulator container is `FROM ghcr.io/thoughtgears/docker-firebase-emulator`, with the
+demo's `firebase.json`, security rules and `functions/` directory COPYed onto it and nothing else changed — no
+forked entrypoint, no reimplemented emulator. It wires that container to a React frontend, an Express API and a
+one-shot seeder over docker-compose, and it exercises the parts of this image that the `example/` directory does
+not: Cloud Functions loaded from `/srv/firebase/functions`, gRPC Firestore through the nginx proxy, and
+cross-container traffic on the offset ports. Because it pins a published tag, a breaking change here shows up as a
+failing `docker compose up` there.
 
 ## Supported versions
 
